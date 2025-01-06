@@ -24,6 +24,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
 
 // This is sample data.
@@ -74,7 +75,7 @@ const data = {
       items: [
         {
           title: "Activity",
-          url: "#",
+          url: "/dashboard/activity",
         },
         {
           title: "Members",
@@ -103,12 +104,12 @@ const data = {
     },
     {
       title: "Campaigns",
-      url: "/campaigns",
+      url: "#",
       icon: BookOpen,
       items: [
         {
           title: "Active",
-          url: "#",
+          url: "/dashboard/campaigns",
         },
         {
           title: "Completed",
