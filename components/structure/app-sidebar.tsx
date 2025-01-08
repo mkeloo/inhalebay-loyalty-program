@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   AudioWaveform,
   BookOpen,
@@ -12,12 +12,12 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
-} from "lucide-react"
+} from "lucide-react";
 
-import { NavMain } from "@/components/structure/nav-main"
-import { NavProjects } from "@/components/structure/nav-projects"
-import { NavUser } from "@/components/structure/nav-user"
-import { TeamSwitcher } from "@/components/structure/team-switcher"
+import { NavMain } from "@/components/structure/nav-main";
+import { NavProjects } from "@/components/structure/nav-projects";
+import { NavUser } from "@/components/structure/nav-user";
+import { TeamSwitcher } from "@/components/structure/team-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -25,7 +25,7 @@ import {
   SidebarHeader,
   SidebarRail,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 // This is sample data.
 const data = {
@@ -94,7 +94,7 @@ const data = {
       items: [
         {
           title: "Rewards Management",
-          url: "#",
+          url: "/dashboard/rewards",
         },
         {
           title: "Member Tiers",
@@ -135,7 +135,7 @@ const data = {
       icon: Map,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -152,5 +152,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
