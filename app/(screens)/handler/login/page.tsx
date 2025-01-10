@@ -117,7 +117,7 @@ export default function HandlerLoginPage() {
 
                 {/* Error Message */}
                 {error && (
-                    <p className="text-red-400 bg-red-800 p-2 rounded-md text-center">
+                    <p className="text-red-800 bg-red-300 p-2 rounded-md text-center">
                         {error}
                     </p>
                 )}
