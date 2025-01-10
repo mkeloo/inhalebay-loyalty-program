@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase/client";
 
 // Fetch client device code
 export async function getStoreClientCode() {
