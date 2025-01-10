@@ -16,7 +16,6 @@ export default function ClientLoginPage() {
     const [error, setError] = useState("");
     const [correctCode, setCorrectCode] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [fetchError, setFetchError] = useState(false);
     const router = useRouter();
 
     // const correctCode = "5678"; // Replace with your client lock code
@@ -35,21 +34,19 @@ export default function ClientLoginPage() {
                 if (response.success && response.data && response.data.length > 0) {
                     const clientCode = response.data[0]?.device_code;
                     setCorrectCode(clientCode);
-                    setFetchError(false); // Fetch succeeded
                 } else {
-                    setFetchError(true); // Explicit fetch failure
+                    setError("Failed to fetch client code. Please try again later.");
                 }
             } catch (err) {
                 console.error("Error fetching client code:", err);
-                setFetchError(true); // Error occurred
+                setError("An error occurred while fetching client code.");
             } finally {
-                setLoading(false); // Loading is done
+                setLoading(false);
             }
         }
 
         fetchClientCode();
     }, []);
-
 
 
 
@@ -77,16 +74,13 @@ export default function ClientLoginPage() {
         );
     }
 
-    if (fetchError) {
+    if (!correctCode) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-900">
-                <p className="text-red-400 font-bold text-2xl">
-                    Failed to fetch client code. Please contact support.
-                </p>
+                <p className="text-red-400 font-bold text-2xl">Client code not available. Please contact support.</p>
             </div>
         );
     }
-
 
 
 
