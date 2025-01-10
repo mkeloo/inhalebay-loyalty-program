@@ -71,24 +71,24 @@ export default function ClientLoginPage() {
         setError(""); // Clear error when input changes
     };
 
-    console.log("correctCode", correctCode);
+    // console.log("correctCode", correctCode);
     // console.error("error", error);
 
-    // if (loading) {
-    //     return (
-    //         <div className="flex items-center justify-center min-h-screen bg-gray-900">
-    //             <p className="text-gray-100 font-bold text-3xl animate-bounce">Loading Client...</p>
-    //         </div>
-    //     );
-    // }
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-900">
+                <p className="text-gray-100 font-bold text-3xl animate-bounce">Loading Client...</p>
+            </div>
+        );
+    }
 
-    // if (!correctCode) {
-    //     return (
-    //         <div className="flex items-center justify-center min-h-screen bg-gray-900">
-    //             <p className="text-red-400 font-bold text-2xl">Client code not available. Please contact support.</p>
-    //         </div>
-    //     );
-    // }
+    if (!correctCode) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-900">
+                <p className="text-red-400 font-bold text-2xl">Client code not available. Please contact support.</p>
+            </div>
+        );
+    }
 
 
 
