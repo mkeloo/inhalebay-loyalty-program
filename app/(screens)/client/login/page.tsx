@@ -15,6 +15,7 @@ export default function ClientLoginPage() {
     const [code, setCode] = useState("");
     const [error, setError] = useState("");
     const [correctCode, setCorrectCode] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     // const correctCode = "5678"; // Replace with your client lock code
@@ -28,17 +29,25 @@ export default function ClientLoginPage() {
 
     useEffect(() => {
         async function fetchClientCode() {
-            const response = await getStoreClientCode();
-            if (response.success && response.data && response.data.length > 0) {
-                const clientCode = response.data[0]?.device_code;
-                setCorrectCode(clientCode);
-            } else {
-                setError("Failed to fetch client code. Please try again later.");
+            try {
+                const response = await getStoreClientCode();
+                if (response.success && response.data && response.data.length > 0) {
+                    const clientCode = response.data[0]?.device_code;
+                    setCorrectCode(clientCode);
+                } else {
+                    setError("Failed to fetch client code. Please try again later.");
+                }
+            } catch (err) {
+                console.error("Error fetching client code:", err);
+                setError("An error occurred while fetching client code.");
+            } finally {
+                setLoading(false);
             }
         }
 
         fetchClientCode();
     }, []);
+
 
 
     const handleLogin = (e: React.FormEvent) => {
@@ -57,13 +66,22 @@ export default function ClientLoginPage() {
         setError(""); // Clear error when input changes
     };
 
-    if (correctCode === null) {
+    if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-900">
                 <p className="text-gray-100 font-bold text-3xl animate-bounce">Loading Client...</p>
             </div>
         );
     }
+
+    if (!correctCode) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-900">
+                <p className="text-red-400 font-bold text-2xl">Client code not available. Please contact support.</p>
+            </div>
+        );
+    }
+
 
 
 
