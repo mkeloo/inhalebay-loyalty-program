@@ -40,7 +40,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 // Icons (adjust to whatever icons you’re using)
-import { MoreVerticalIcon } from "lucide-react"; // or your icon library
+import { MoreVerticalIcon, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 type MemberTier = {
@@ -207,8 +207,8 @@ export default function MemberTiersManagement() {
 
             {/* Table */}
             <Card>
-                <CardContent>
-                    <Table>
+                <CardContent className="max-w-5xl mx-auto p-6 border border-gray-200 rounded-2xl my-10">
+                    <Table className="pt-10">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Name</TableHead>
@@ -234,12 +234,14 @@ export default function MemberTiersManagement() {
                                                     <MoreVerticalIcon className="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent>
-                                                <DropdownMenuItem onClick={() => handleEdit(tier)}>
+                                            <DropdownMenuContent className="flex flex-col">
+                                                <DropdownMenuItem className="flex justify-between items-center bg-blue-900 text-blue-100 m-1" onClick={() => handleEdit(tier)}>
                                                     Edit
+                                                    <Pencil className="w-4 h-4 ml-2" />
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleDelete(tier.id)}>
+                                                <DropdownMenuItem className="flex justify-between items-center bg-red-900 text-red-100 m-1" onClick={() => handleDelete(tier.id)}>
                                                     Delete
+                                                    <Trash2 className="w-4 h-4 ml-2" />
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

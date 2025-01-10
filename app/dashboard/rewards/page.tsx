@@ -21,7 +21,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 // Icons (adjust these to whatever icons you’re using)
-import { MoreVerticalIcon } from "lucide-react"; // or your icon library
+import { MoreVerticalIcon, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 type Reward = {
@@ -142,8 +142,8 @@ export default function RewardsManagementPage() {
 
       {/* Table */}
       <Card>
-        <CardContent>
-          <Table>
+        <CardContent className="max-w-3xl mx-auto p-6 border border-gray-200 rounded-2xl my-10">
+          <Table className="pt-10">
             <TableHeader>
               <TableRow>
                 <TableHead>Reward</TableHead>
@@ -163,12 +163,14 @@ export default function RewardsManagementPage() {
                           <MoreVerticalIcon className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleEdit(item)}>
+                      <DropdownMenuContent className="flex flex-col">
+                        <DropdownMenuItem className="flex justify-between items-center bg-blue-900 text-blue-100 m-1" onClick={() => handleEdit(item)}>
                           Edit
+                          <Pencil className="w-4 h-4 ml-2" />
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(item.id)}>
+                        <DropdownMenuItem className="flex justify-between items-center bg-red-900 text-red-100 m-1" onClick={() => handleDelete(item.id)}>
                           Delete
+                          <Trash2 className="w-4 h-4 ml-2" />
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
