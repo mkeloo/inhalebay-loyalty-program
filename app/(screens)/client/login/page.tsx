@@ -52,7 +52,11 @@ export default function ClientLoginPage() {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (parseInt(code, 10) === Number(correctCode)) { // Convert `code` and `correctCode` to numbers for comparison
+        if (loading || correctCode === null) {
+            setError("Please wait while we fetch the code.");
+            return;
+        }
+        if (parseInt(code, 10) === Number(correctCode)) {
             login(); // Call Zustand login action
             router.push("/client/main"); // Redirect after successful login
         } else {
@@ -61,13 +65,14 @@ export default function ClientLoginPage() {
     };
 
 
+
     const handleCodeChange = (value: string) => {
         setCode(value);
         setError(""); // Clear error when input changes
     };
 
     console.log("correctCode", correctCode);
-    console.error("error", error);
+    // console.error("error", error);
 
     // if (loading) {
     //     return (
