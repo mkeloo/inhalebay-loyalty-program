@@ -7,15 +7,18 @@ import {
     InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useHandlerAuthStore } from "@/stores/store"; // Zustand store for handler auth
+import { getStoreHandlerCode } from '../../../actions/getStoreDeviceCodes'
+
 
 export default function HandlerLoginPage() {
     const isAuthenticated = useHandlerAuthStore((state) => state.isAuthenticated); // Zustand state
     const login = useHandlerAuthStore((state) => state.login); // Zustand login action
     const [code, setCode] = useState("");
     const [error, setError] = useState("");
+    const [correctCode, setCorrectCode] = useState<string | null>(null);
     const router = useRouter();
 
-    const correctCode = "1234"; // Replace with your handler lock code
+    // const correctCode = "1234"; // Replace with your handler lock code
 
     // Redirect to /handler/main/ if already logged in
     useEffect(() => {
@@ -24,9 +27,23 @@ export default function HandlerLoginPage() {
         }
     }, [isAuthenticated, router]);
 
+    useEffect(() => {
+        async function fetchHandlerCode() {
+            const response = await getStoreHandlerCode();
+            if (response.success && response.data && response.data.length > 0) {
+                const handlerCode = response.data[0]?.device_code;
+                setCorrectCode(handlerCode);
+            } else {
+                setError("Failed to fetch handler code. Please try again later.");
+            }
+        }
+
+        fetchHandlerCode();
+    }, []);
+
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (code === correctCode) {
+        if (parseInt(code, 10) === Number(correctCode)) { // Convert `code` and `correctCode` to numbers for comparison
             login(); // Call Zustand login action
             router.push("/handler/main"); // Redirect after successful login
         } else {
@@ -38,6 +55,14 @@ export default function HandlerLoginPage() {
         setCode(value);
         setError(""); // Clear error when input changes
     };
+
+    if (correctCode === null) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-900">
+                <p className="text-gray-100 font-bold text-3xl animate-bounce">Loading Handler...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-900">

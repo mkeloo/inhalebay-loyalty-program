@@ -7,15 +7,17 @@ import {
     InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useClientAuthStore } from "@/stores/store";
+import { getStoreClientCode } from '../../../actions/getStoreDeviceCodes'
 
 export default function ClientLoginPage() {
     const isAuthenticated = useClientAuthStore((state) => state.isAuthenticated); // Zustand state
     const login = useClientAuthStore((state) => state.login); // Zustand login action
     const [code, setCode] = useState("");
     const [error, setError] = useState("");
+    const [correctCode, setCorrectCode] = useState<string | null>(null);
     const router = useRouter();
 
-    const correctCode = "5678"; // Replace with your client lock code
+    // const correctCode = "5678"; // Replace with your client lock code
 
     // Redirect to /client/main/ if already logged in
     useEffect(() => {
@@ -24,9 +26,24 @@ export default function ClientLoginPage() {
         }
     }, [isAuthenticated, router]);
 
+    useEffect(() => {
+        async function fetchClientCode() {
+            const response = await getStoreClientCode();
+            if (response.success && response.data && response.data.length > 0) {
+                const clientCode = response.data[0]?.device_code;
+                setCorrectCode(clientCode);
+            } else {
+                setError("Failed to fetch client code. Please try again later.");
+            }
+        }
+
+        fetchClientCode();
+    }, []);
+
+
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (code === correctCode) {
+        if (parseInt(code, 10) === Number(correctCode)) { // Convert `code` and `correctCode` to numbers for comparison
             login(); // Call Zustand login action
             router.push("/client/main"); // Redirect after successful login
         } else {
@@ -34,10 +51,21 @@ export default function ClientLoginPage() {
         }
     };
 
+
     const handleCodeChange = (value: string) => {
         setCode(value);
         setError(""); // Clear error when input changes
     };
+
+    if (correctCode === null) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-900">
+                <p className="text-gray-100 font-bold text-3xl animate-bounce">Loading Client...</p>
+            </div>
+        );
+    }
+
+
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-900">
