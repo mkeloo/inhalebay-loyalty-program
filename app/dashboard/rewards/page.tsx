@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -16,118 +17,166 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// Icons (adjust these to whatever icons you’re using)
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MoreVerticalIcon, Pencil, Trash2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-type Reward = {
-  id: number;
-  reward: string;
-  point_value: number;
-};
+import {
+  fetchRewards,
+  createReward,
+  updateReward,
+  deleteReward,
+} from "../../actions/rewards";
+import { fetchStoreId } from "../../actions/storeDetails";
+import { Reward, STORE_CODE } from "@/lib/types";
 
-// Dummy data
-const dummyData: Reward[] = [
-  { id: 1, reward: "$5 Reward (no tobacco)", point_value: 100 },
-  { id: 2, reward: "$10 Reward (no tobacco)", point_value: 200 },
-];
+export default function RewardsManagement() {
+  const [rewards, setRewards] = useState<Reward[]>([]);
 
-export default function RewardsManagementPage() {
-  // The rewards data
-  const [rewards, setRewards] = React.useState<Reward[]>(dummyData);
+  // Loading states
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Sheet state
-  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
-  // Dialog state
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  // UI states
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Tracking which reward is being edited or deleted
-  const [currentReward, setCurrentReward] = React.useState<Reward | null>(null);
-  const [deleteRewardId, setDeleteRewardId] = React.useState<number | null>(null);
+  // Data
+  const [currentReward, setCurrentReward] = useState<Reward | null>(null);
+  const [deleteRewardId, setDeleteRewardId] = useState<number | null>(null);
 
-  // Temp form state for adding/editing
-  const [tempReward, setTempReward] = React.useState({
-    reward: "",
-    point_value: 0,
-  });
+  // ───────────────────────────────────────────────────────
+  // Load Rewards on Component Mount
+  // ───────────────────────────────────────────────────────
+  useEffect(() => {
+    async function loadRewards() {
+      setIsLoading(true);
+      const result = await fetchRewards();
+      if (result.success) {
+        setRewards(result.data ?? []);
+      } else {
+        console.error(result.message);
+        setRewards([]);
+      }
+      setIsLoading(false);
+    }
+    loadRewards();
+  }, []);
 
-  // ---------------------
-  // ADD / EDIT Handlers
-  // ---------------------
-
-  // Open the Sheet to add a new reward
+  // ───────────────────────────────────────────────────────
+  // Add / Edit Reward
+  // ───────────────────────────────────────────────────────
   const handleAddReward = () => {
-    setCurrentReward(null); // We’re adding, so no current reward
-    setTempReward({ reward: "", point_value: 0 }); // Reset temp form
-    setIsSheetOpen(true);
-  };
-
-  // Open the Sheet to edit an existing reward
-  const handleEdit = (reward: Reward) => {
-    setCurrentReward(reward);
-    setTempReward({
-      reward: reward.reward,
-      point_value: reward.point_value,
+    setCurrentReward({
+      id: 0,
+      title: "",
+      reward_name: "",
+      unlock_points: null,
+      reward_type: "promo",
+      days_left: null,
     });
     setIsSheetOpen(true);
   };
 
-  // Save the reward (either new or edited)
-  const handleSaveReward = () => {
-    if (currentReward) {
-      // EDIT mode
-      setRewards((prev) =>
-        prev.map((item) =>
-          item.id === currentReward.id
-            ? {
-              ...item,
-              reward: tempReward.reward,
-              point_value: tempReward.point_value,
-            }
-            : item
-        )
+  const handleEdit = (reward: Reward) => {
+    setCurrentReward(reward);
+    setIsSheetOpen(true);
+  };
+
+  const handleSaveReward = async () => {
+    if (!currentReward) return;
+    setIsSaving(true);
+
+    if (currentReward.id) {
+      // Edit Mode
+      const updateResult = await updateReward(
+        currentReward.id,
+        currentReward.title,
+        currentReward.reward_name,
+        currentReward.unlock_points ?? 0,
+        currentReward.reward_type,
+        currentReward.days_left
       );
+      if (!updateResult.success) {
+        console.error(updateResult.message);
+      }
     } else {
-      // ADD mode
-      const newId = rewards.reduce((max, item) => Math.max(max, item.id), 0) + 1;
-      setRewards([
-        ...rewards,
-        {
-          id: newId,
-          reward: tempReward.reward,
-          point_value: tempReward.point_value,
-        },
-      ]);
+      // Add Mode
+      const storeResult = await fetchStoreId(STORE_CODE);
+      if (storeResult.success && storeResult.data) {
+        const createResult = await createReward(
+          storeResult.data,
+          currentReward.title,
+          currentReward.reward_name,
+          currentReward.unlock_points ?? 0,
+          currentReward.reward_type,
+          currentReward.days_left
+        );
+        if (!createResult.success) {
+          console.error(createResult.message);
+        }
+      } else {
+        console.error("Error fetching store id.");
+      }
     }
-    // Close the sheet
+
+    // Refresh data
+    const result = await fetchRewards();
+    if (result.success) {
+      setRewards(result.data ?? []);
+    }
+
+    setIsSaving(false);
     setIsSheetOpen(false);
   };
 
-  // ------------
-  // DELETE Logic
-  // ------------
-
-  // Open Dialog to confirm deletion
+  // ───────────────────────────────────────────────────────
+  // Delete Reward
+  // ───────────────────────────────────────────────────────
   const handleDelete = (rewardId: number) => {
     setDeleteRewardId(rewardId);
     setIsDialogOpen(true);
   };
 
-  // Confirm deletion
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteRewardId !== null) {
-      setRewards((prev) => prev.filter((item) => item.id !== deleteRewardId));
+      setIsDeleting(true);
+      const deleteResult = await deleteReward(deleteRewardId);
+      if (!deleteResult.success) {
+        console.error(deleteResult.message);
+      }
+      // Refresh data
+      const result = await fetchRewards();
+      if (result.success) {
+        setRewards(result.data ?? []);
+      }
+      setIsDeleting(false);
     }
-    setIsDialogOpen(false);
-    setDeleteRewardId(null);
-  };
-
-  // Cancel deletion
-  const cancelDelete = () => {
     setIsDialogOpen(false);
     setDeleteRewardId(null);
   };
@@ -135,97 +184,138 @@ export default function RewardsManagementPage() {
   return (
     <div className="space-y-4 p-4">
       {/* Title + Add Reward button */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Rewards Management</h1>
-        <Button onClick={handleAddReward}>Add Reward</Button>
+      <div className="flex items-center justify-center pb-4">
+        <h1 className="text-4xl font-semibold">Rewards Management</h1>
       </div>
 
+      {/* Loading indicator */}
+      {isLoading && <p className="text-sm text-gray-500">Loading rewards...</p>}
+
       {/* Table */}
-      <Card>
-        <CardContent className="max-w-3xl mx-auto p-6 border border-gray-200 rounded-2xl my-10">
-          <Table className="pt-10">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Reward</TableHead>
-                <TableHead>Point Value</TableHead>
-                <TableHead>Actions</TableHead>
+      <Card className="w-full px-6 py-6 border border-gray-700 rounded-2xl">
+        <CardHeader className="flex flex-row items-center justify-between mb-4 py-4 border border-gray-700 rounded-2xl">
+          <h1 className="text-2xl font-semibold">Current Rewards</h1>
+          <Button onClick={handleAddReward}>Add Reward</Button>
+        </CardHeader>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Reward Name</TableHead>
+              <TableHead>Unlock Points</TableHead>
+              <TableHead>Reward Type</TableHead>
+              <TableHead>Days Left</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rewards.map((reward) => (
+              <TableRow key={reward.id}>
+                <TableCell>{reward.title}</TableCell>
+                <TableCell>{reward.reward_name}</TableCell>
+                <TableCell>{reward.unlock_points ?? "-"}</TableCell>
+                <TableCell>{reward.reward_type}</TableCell>
+                <TableCell>{reward.days_left ?? "-"}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <MoreVerticalIcon className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="flex flex-col">
+                      <DropdownMenuItem
+                        className="bg-yellow-700 text-yellow-100 m-1 flex items-center justify-between"
+                        onClick={() => handleEdit(reward)}
+                      >
+                        Edit <Pencil className="w-4 h-4" />
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="bg-red-700 text-red-100 m-1 flex items-center justify-between"
+                        onClick={() => handleDelete(reward.id)}
+                      >
+                        Delete <Trash2 className="w-4 h-4" />
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rewards.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.reward}</TableCell>
-                  <TableCell>{item.point_value}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVerticalIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="flex flex-col">
-                        <DropdownMenuItem className="flex justify-between items-center bg-blue-900 text-blue-100 m-1" onClick={() => handleEdit(item)}>
-                          Edit
-                          <Pencil className="w-4 h-4 ml-2" />
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="flex justify-between items-center bg-red-900 text-red-100 m-1" onClick={() => handleDelete(item.id)}>
-                          Delete
-                          <Trash2 className="w-4 h-4 ml-2" />
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
+            ))}
+          </TableBody>
+        </Table>
       </Card>
 
-      {/* Sheet for Add/Edit */}
+      {/* Sheet for Add/Edit Reward */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="w-[320px] sm:w-[400px]">
+        <SheetContent>
           <SheetHeader>
             <SheetTitle>
-              {currentReward ? "Edit Reward" : "Add Reward"}
+              {currentReward?.id ? "Edit Reward" : "Add Reward"}
             </SheetTitle>
+            <VisuallyHidden.Root>
+              <SheetDescription>Description goes here</SheetDescription>
+            </VisuallyHidden.Root>
           </SheetHeader>
-
           <div className="mt-4 space-y-3">
-            <div className="flex flex-col space-y-1">
-              <Label htmlFor="reward">Reward</Label>
-              <Input
-                id="reward"
-                placeholder="e.g. $5 Reward (no tobacco)"
-                value={tempReward.reward}
-                onChange={(e) =>
-                  setTempReward((prev) => ({ ...prev, reward: e.target.value }))
-                }
-              />
-            </div>
-            <div className="flex flex-col space-y-1">
-              <Label htmlFor="point_value">Point Value</Label>
-              <Input
-                id="point_value"
-                type="number"
-                placeholder="e.g. 100"
-                value={tempReward.point_value}
-                onChange={(e) =>
-                  setTempReward((prev) => ({
-                    ...prev,
-                    point_value: Number(e.target.value),
-                  }))
-                }
-              />
-            </div>
+            <Label>Title</Label>
+            <Input
+              value={currentReward?.title || ""}
+              onChange={(e) =>
+                setCurrentReward((prev) =>
+                  prev ? { ...prev, title: e.target.value } : prev
+                )
+              }
+            />
+            <Label>Reward Name</Label>
+            <Input
+              value={currentReward?.reward_name || ""}
+              onChange={(e) =>
+                setCurrentReward((prev) =>
+                  prev ? { ...prev, reward_name: e.target.value } : prev
+                )
+              }
+            />
+            <Label>Unlock Points</Label>
+            <Input
+              type="number"
+              value={currentReward?.unlock_points ?? 0}
+              onChange={(e) =>
+                setCurrentReward((prev) =>
+                  prev ? { ...prev, unlock_points: Number(e.target.value) } : prev
+                )
+              }
+            />
+            <Label>Reward Type</Label>
+            <Select
+              value={currentReward?.reward_type || "promo"}
+              onValueChange={(value) =>
+                setCurrentReward((prev) =>
+                  prev ? { ...prev, reward_type: value as "promo" | "reward" } : prev
+                )
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="promo">Promo</SelectItem>
+                <SelectItem value="reward">Reward</SelectItem>
+              </SelectContent>
+            </Select>
+            <Label>Days Left</Label>
+            <Input
+              type="number"
+              value={currentReward?.days_left ?? 0}
+              onChange={(e) =>
+                setCurrentReward((prev) =>
+                  prev ? { ...prev, days_left: Number(e.target.value) } : prev
+                )
+              }
+            />
           </div>
-
-          <SheetFooter className="mt-4">
-            <Button variant="outline" onClick={() => setIsSheetOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveReward}>
-              {currentReward ? "Save Changes" : "Add Reward"}
+          <SheetFooter>
+            <Button onClick={handleSaveReward} disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save"}
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -235,15 +325,17 @@ export default function RewardsManagementPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>Confirm Delete</DialogTitle>
           </DialogHeader>
-          <p className="py-4">Are you sure you want to delete this reward?</p>
+          <div className="py-4">
+            Are you sure you want to delete this reward?
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={cancelDelete}>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+            <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
