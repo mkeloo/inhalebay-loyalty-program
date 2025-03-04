@@ -24,6 +24,9 @@ export default function HandlerMainPage() {
             <h1 className="text-4xl font-bold font-mono text-gray-100 py-16">
                 Handler Main Page
             </h1>
+            <p>
+            https://expo.dev/accounts/zayndash/projects/dummy-project/builds/35631a7f-1692-4e61-9de9-4436a87f6e0c
+            </p>
             <button
                 onClick={handleLogout}
                 className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
