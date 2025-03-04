@@ -9,6 +9,7 @@ import {
   Frame,
   GalleryVerticalEnd,
   Map,
+  MonitorSmartphone,
   PieChart,
   Settings2,
   SquareTerminal,
@@ -72,6 +73,7 @@ const data = {
       title: "Member Analytics",
       url: "#",
       icon: Bot,
+      isActive: true,
       items: [
         {
           title: "Activity",
@@ -84,6 +86,26 @@ const data = {
         {
           title: "Transactions",
           url: "#",
+        },
+      ],
+    },
+    {
+      title: "Device Management",
+      url: "#",
+      icon: MonitorSmartphone,
+      isActive: true,
+      items: [
+        {
+          title: "Screen Codes",
+          url: "/dashboard/device-management/screen-codes",
+        },
+        {
+          title: "Client Device",
+          url: "/dashboard/device-management/client-device",
+        },
+        {
+          title: "Handler Device",
+          url: "/dashboard/device-management/handler-device",
         },
       ],
     },

@@ -7,7 +7,7 @@ import {
     InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useHandlerAuthStore } from "@/stores/store"; // Zustand store for handler auth
-import { getStoreHandlerCode } from '../../../actions/getStoreDeviceCodes'
+import { getStoreHandlerCode } from '../../../actions/screenCodes'
 
 
 export default function HandlerLoginPage() {

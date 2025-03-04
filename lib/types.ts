@@ -21,3 +21,13 @@ export type Reward = {
     created_at?: string;
     updated_at?: string;
 };
+
+
+export type ScreenCode = {
+    id: number;
+    store_id: string;
+    screen_name: string;
+    screen_code: number;
+    created_at?: string;
+    updated_at?: string;
+};

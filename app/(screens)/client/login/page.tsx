@@ -7,7 +7,7 @@ import {
     InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useClientAuthStore } from "@/stores/store";
-import { getStoreClientCode } from '../../../actions/getStoreDeviceCodes'
+import { getStoreClientCode } from '../../../actions/screenCodes'
 
 export default function ClientLoginPage() {
     const isAuthenticated = useClientAuthStore((state) => state.isAuthenticated); // Zustand state
