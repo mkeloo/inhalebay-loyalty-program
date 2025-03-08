@@ -84,8 +84,8 @@ const data = {
           url: "#",
         },
         {
-          title: "Transactions",
-          url: "#",
+          title: "Customer Transactions",
+          url: "/dashboard/member-analytics/customer-transactions",
         },
       ],
     },
