@@ -31,3 +31,21 @@ export type ScreenCode = {
     created_at?: string;
     updated_at?: string;
 };
+
+
+export type Customers = {
+    id?: string;
+    store_id?: string;
+    phone_number?: string;
+    name?: string;
+    avatar_name?: string;
+    current_points?: number;
+    lifetime_points?: number;
+    total_visits?: number;
+    last_visit?: string;
+    joined_date?: string;
+    membership_level?: string;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+};

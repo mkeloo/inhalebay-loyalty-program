@@ -80,8 +80,8 @@ const data = {
           url: "/dashboard/activity",
         },
         {
-          title: "Members",
-          url: "#",
+          title: "Customers",
+          url: "/dashboard/member-analytics/customers",
         },
         {
           title: "Customer Transactions",
