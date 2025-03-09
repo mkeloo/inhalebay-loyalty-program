@@ -243,31 +243,31 @@ export const columns: ColumnDef<Customers>[] = [
         id: "actions",
         header: () => <div className="text-center">Actions</div>,
         enableHiding: false,
-        cell: ({ row }) => {
-            const customer = row.original;
-            return (
-                <div className="flex items-center justify-center">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(customer.id ?? "")}>
-                                Copy Customer ID
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>Edit Customer</DropdownMenuItem>
-                            <DropdownMenuItem>Delete Customer</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            );
-        },
+        // cell: ({ row }) => {
+        //     const customer = row.original;
+        //     return (
+        //         <div className="w-full flex items-center justify-center">
+        //             <DropdownMenu>
+        //                 <DropdownMenuTrigger asChild>
+        //                     <Button variant="ghost" className="h-8 w-8 p-0">
+        //                         <span className="sr-only">Open menu</span>
+        //                         <MoreHorizontal />
+        //                     </Button>
+        //                 </DropdownMenuTrigger>
+        //                 <DropdownMenuContent align="end">
+        //                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        //                     <DropdownMenuItem onClick={() => navigator.clipboard.writeText(customer.id ?? "")}>
+        //                         Copy Customer ID
+        //                     </DropdownMenuItem>
+        //                     <DropdownMenuSeparator />
+        //                     <DropdownMenuItem>Edit Customer</DropdownMenuItem>
+        //                     <DropdownMenuItem>Delete Customer</DropdownMenuItem>
+        //                 </DropdownMenuContent>
+        //             </DropdownMenu>
+        //         </div>
+        //     );
+        // },
         size: 80,
-        minSize: 100,
+        minSize: 180,
     },
 ];
