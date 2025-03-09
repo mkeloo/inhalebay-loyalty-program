@@ -288,7 +288,7 @@ export default function CustomersTable() {
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                 <SheetContent className="w-[320px] sm:w-[400px] overflow-y-scroll">
                     <SheetHeader>
-                        <SheetTitle>Edit Customer</SheetTitle>
+                        <SheetTitle className="text-center text-2xl">Edit Customer</SheetTitle>
                     </SheetHeader>
 
                     <div className="mt-4 space-y-3">
@@ -445,33 +445,37 @@ export default function CustomersTable() {
                             </div>
                         </div>
 
-                        {/* Total Visits (Non-Editable) */}
-                        <div className="flex flex-col space-y-1">
-                            <Label htmlFor="totalVisits">Total Visits</Label>
-                            <Input
-                                id="totalVisits"
-                                disabled
-                                value={
-                                    typeof editedCustomer.total_visits === "number"
-                                        ? editedCustomer.total_visits.toString()
-                                        : "N/A"
-                                }
-                            />
-                        </div>
+                        <div className="w-full flex items-center justify-center gap-x-4">
+                            {/* Last Visit (Non-Editable) */}
+                            <div className="flex flex-col space-y-1">
+                                <Label htmlFor="lastVisit">Last Visit</Label>
+                                <Input
+                                    id="lastVisit"
+                                    disabled
+                                    value={
+                                        editedCustomer.last_visit &&
+                                            !isNaN(new Date(editedCustomer.last_visit).getTime())
+                                            ? new Date(editedCustomer.last_visit).toLocaleString()
+                                            : "N/A"
+                                    }
+                                />
+                            </div>
 
-                        {/* Last Visit (Non-Editable) */}
-                        <div className="flex flex-col space-y-1">
-                            <Label htmlFor="lastVisit">Last Visit</Label>
-                            <Input
-                                id="lastVisit"
-                                disabled
-                                value={
-                                    editedCustomer.last_visit &&
-                                        !isNaN(new Date(editedCustomer.last_visit).getTime())
-                                        ? new Date(editedCustomer.last_visit).toLocaleString()
-                                        : "N/A"
-                                }
-                            />
+
+                            {/* Total Visits (Non-Editable) */}
+                            <div className="flex flex-col space-y-1">
+                                <Label htmlFor="totalVisits">Total Visits</Label>
+                                <Input
+                                    id="totalVisits"
+                                    disabled
+                                    value={
+                                        typeof editedCustomer.total_visits === "number"
+                                            ? editedCustomer.total_visits.toString()
+                                            : "N/A"
+                                    }
+                                />
+                            </div>
+
                         </div>
 
                         {/* Joined Date (Non-Editable) */}
@@ -508,35 +512,40 @@ export default function CustomersTable() {
                             />
                         </div>
 
-                        {/* Created At (Non-Editable) */}
-                        <div className="flex flex-col space-y-1">
-                            <Label htmlFor="createdAt">Created At</Label>
-                            <Input
-                                id="createdAt"
-                                disabled
-                                value={
-                                    editedCustomer.created_at &&
-                                        !isNaN(new Date(editedCustomer.created_at).getTime())
-                                        ? new Date(editedCustomer.created_at).toLocaleString()
-                                        : "N/A"
-                                }
-                            />
+
+
+                        <div className="w-full flex items-center justify-center gap-x-4">
+                            {/* Updated At (Non-Editable) */}
+                            <div className="flex flex-col space-y-1">
+                                <Label htmlFor="updatedAt">Updated At</Label>
+                                <Input
+                                    id="updatedAt"
+                                    disabled
+                                    value={
+                                        editedCustomer.updated_at &&
+                                            !isNaN(new Date(editedCustomer.updated_at).getTime())
+                                            ? new Date(editedCustomer.updated_at).toLocaleString()
+                                            : "N/A"
+                                    }
+                                />
+                            </div>
+
+                            {/* Created At (Non-Editable) */}
+                            <div className="flex flex-col space-y-1">
+                                <Label htmlFor="createdAt">Created At</Label>
+                                <Input
+                                    id="createdAt"
+                                    disabled
+                                    value={
+                                        editedCustomer.created_at &&
+                                            !isNaN(new Date(editedCustomer.created_at).getTime())
+                                            ? new Date(editedCustomer.created_at).toLocaleString()
+                                            : "N/A"
+                                    }
+                                />
+                            </div>
                         </div>
 
-                        {/* Updated At (Non-Editable) */}
-                        <div className="flex flex-col space-y-1">
-                            <Label htmlFor="updatedAt">Updated At</Label>
-                            <Input
-                                id="updatedAt"
-                                disabled
-                                value={
-                                    editedCustomer.updated_at &&
-                                        !isNaN(new Date(editedCustomer.updated_at).getTime())
-                                        ? new Date(editedCustomer.updated_at).toLocaleString()
-                                        : "N/A"
-                                }
-                            />
-                        </div>
                     </div>
 
                     <SheetFooter className="mt-4">

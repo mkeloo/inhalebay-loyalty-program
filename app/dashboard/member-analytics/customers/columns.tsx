@@ -105,8 +105,8 @@ export const columns: ColumnDef<Customers>[] = [
             </div>
         ),
         cell: ({ row }) => <div className="text-center">{row.getValue("lifetime_points")}</div>,
-        size: 150,
-        minSize: 150,
+        size: 200,
+        minSize: 200,
     },
     {
         accessorKey: "total_visits",
