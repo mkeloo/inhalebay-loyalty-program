@@ -28,7 +28,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Main Content Area */}
-        <Card className="p-4 min-h-[calc(100vh-4rem)]">{children}</Card>
+        <Card className="p-4 min-h-[calc(100vh-4rem)] w-full z-1">
+          {children}
+        </Card>
       </SidebarInset>
     </SidebarProvider>
   );
