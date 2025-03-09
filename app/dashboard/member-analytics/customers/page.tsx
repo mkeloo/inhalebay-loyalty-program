@@ -417,7 +417,7 @@ export default function CustomersTable() {
                                 }
                                 className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                <option value="">Select Membership Level</option>
+                                <option value="" disabled>Select Membership Level</option>
                                 <option value="new">New</option>
                                 <option value="regular">Regular</option>
                                 <option value="vip">VIP</option>
