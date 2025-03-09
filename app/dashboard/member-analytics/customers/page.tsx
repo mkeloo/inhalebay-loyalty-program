@@ -28,6 +28,7 @@ import { fetchCustomers, updateCustomer, deleteCustomer } from "../../../actions
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Pencil, Trash2 } from "lucide-react";
 
 export type Customer = {
     id: string;
@@ -85,13 +86,13 @@ export default function CustomersTable() {
                     cell: ({ row }: any) => {
                         const customer = row.original as Customer;
                         return (
-                            <div className="flex items-center justify-center space-x-2">
-                                <Button variant="secondary" onClick={() => handleEdit(customer)}>
-                                    Edit
-                                </Button>
-                                <Button variant="destructive" onClick={() => handleDelete(customer.id)}>
-                                    Delete
-                                </Button>
+                            <div className="w-full flex items-center justify-between">
+                                <button className="bg-yellow-300 text-yellow-950 font-bold m-1 flex items-center justify-between cursor-default select-none gap-2 rounded-sm w-20 px-2 py-2 text-sm outline-none" onClick={() => handleEdit(customer)}>
+                                    Edit <Pencil className="w-5 h-5" strokeWidth={2} />
+                                </button>
+                                <button className="bg-red-800 text-red-200 font-bold m-1 flex items-center justify-between cursor-default select-none gap-2 rounded-sm w-20 px-2 py-2 text-sm outline-none" onClick={() => handleDelete(customer.id)}>
+                                    Delete <Trash2 className="w-5 h-5" strokeWidth={2} />
+                                </button>
                             </div>
                         );
                     },

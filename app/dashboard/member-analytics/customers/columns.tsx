@@ -267,7 +267,7 @@ export const columns: ColumnDef<Customers>[] = [
         //         </div>
         //     );
         // },
-        size: 80,
-        minSize: 180,
+        size: 200,
+        minSize: 200,
     },
 ];
