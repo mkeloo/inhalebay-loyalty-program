@@ -29,6 +29,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export type Customer = {
     id: string;
@@ -87,10 +88,10 @@ export default function CustomersTable() {
                         const customer = row.original as Customer;
                         return (
                             <div className="w-full flex items-center justify-between">
-                                <button className="bg-yellow-300 text-yellow-950 font-bold m-1 flex items-center justify-between cursor-default select-none gap-2 rounded-sm w-20 px-2 py-2 text-sm outline-none" onClick={() => handleEdit(customer)}>
+                                <button className="bg-yellow-300 text-yellow-950 font-bold m-1 flex items-center justify-between cursor-default select-none gap-2 rounded-sm w-24 px-2 py-2 text-sm outline-none" onClick={() => handleEdit(customer)}>
                                     Edit <Pencil className="w-5 h-5" strokeWidth={2} />
                                 </button>
-                                <button className="bg-red-800 text-red-200 font-bold m-1 flex items-center justify-between cursor-default select-none gap-2 rounded-sm w-20 px-2 py-2 text-sm outline-none" onClick={() => handleDelete(customer.id)}>
+                                <button className="bg-red-800 text-red-200 font-bold m-1 flex items-center justify-between cursor-default select-none gap-2 rounded-sm w-24 px-2 py-2 text-sm outline-none" onClick={() => handleDelete(customer.id)}>
                                     Delete <Trash2 className="w-5 h-5" strokeWidth={2} />
                                 </button>
                             </div>
@@ -194,15 +195,17 @@ export default function CustomersTable() {
 
     return (
         <div className="w-full max-w-[1200px]">
-            {/* Filter input */}
-            <div className="flex items-center gap-4 py-4">
+            {/* Title & Filter input */}
+            <Card className="flex items-center justify-between gap-4 px-6 py-4 mb-4">
+                <h1 className="text-2xl font-semibold">Customers</h1>
+
                 <Input
                     placeholder="Filter by customer name..."
                     value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                     onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
                     className="max-w-sm"
                 />
-            </div>
+            </Card>
 
             {/* Card container with horizontal scroll for the table only */}
             <div className="rounded-md border p-4">

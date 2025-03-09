@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table"
 import { columns } from "./columns"
 import { fetchCustomerTransactions } from "../../../actions/customerTransactions"
+import { Card } from "@/components/ui/card"
 
 // Same type definition, but note we rely on "transaction_display" column for display logic
 export type CustomerTransaction = {
@@ -96,32 +97,39 @@ export default function CustomerTransactionsTable() {
     return (
         <div className="w-full max-w-[1200px]">
             {/* Filter Row */}
-            <div className="flex items-center gap-4 py-4">
-                {/* Example: Keep or remove this Input if you want a text-based filter. 
-            But we replaced transaction_type with transaction_display. 
-            You can remove it if you'd rather rely solely on the dropdown. */}
-                <Input
-                    placeholder="Filter by transaction type..."
-                    value={(table.getColumn("transaction_display")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("transaction_display")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm"
-                />
 
-                {/* 5) The dropdown for discrete filters */}
-                <select
-                    onChange={(e) => handleDisplayFilterChange(e.target.value)}
-                    className="border px-2 py-1 rounded"
-                    defaultValue="All"
-                >
-                    {transactionTypeOptions.map((option) => (
-                        <option key={option} value={option}>
-                            {option}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            {/* Title & Filter input */}
+            <Card className="flex items-center justify-between gap-4 px-6 py-4 mb-4">
+                <h1 className="w-1/2 text-2xl font-semibold">Customer Transactions</h1>
+
+                <div className="w-1/2 flex items-center justify-between">
+                    {/* Example: Keep or remove this Input if you want a text-based filter. 
+                    But we replaced transaction_type with transaction_display. 
+                    You can remove it if you'd rather rely solely on the dropdown. */}
+                    <Input
+                        placeholder="Filter by transaction type..."
+                        value={(table.getColumn("transaction_display")?.getFilterValue() as string) ?? ""}
+                        onChange={(event) =>
+                            table.getColumn("transaction_display")?.setFilterValue(event.target.value)
+                        }
+                        className="max-w-sm"
+                    />
+
+                    {/* 5) The dropdown for discrete filters */}
+                    <select
+                        onChange={(e) => handleDisplayFilterChange(e.target.value)}
+                        className="border px-2 py-1 rounded"
+                        defaultValue="All"
+                    >
+                        {transactionTypeOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </Card>
+
 
             {/* Scrollable container */}
             <div className="w-full overflow-x-auto rounded-md border h-[600px]">
