@@ -27,7 +27,7 @@ import {
 import { columns } from "./columns"
 import { fetchCustomerTransactions } from "../../../actions/customerTransactions"
 
-// Define the transaction type
+// Same type definition, but note we rely on "transaction_display" column for display logic
 export type CustomerTransaction = {
     id: number
     transaction_type: "signup" | "visit" | "redeem_reward"
@@ -45,9 +45,10 @@ export default function CustomerTransactionsTable() {
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = React.useState({})
-    const [page, setPage] = React.useState<number>(1) // Pagination state
-    const pageSize = 20 // Show 20 rows per page
+    const [page, setPage] = React.useState<number>(1)
+    const pageSize = 20
 
+    // 1) On mount or page change, fetch data
     React.useEffect(() => {
         const fetchData = async () => {
             const response = await fetchCustomerTransactions(page, pageSize)
@@ -59,11 +60,11 @@ export default function CustomerTransactionsTable() {
         fetchData()
     }, [page])
 
-    // Create table instance
+    // 2) Build the table
     const table = useReactTable({
         data,
         columns,
-        enableColumnResizing: true,            // <--- enable column resizing
+        enableColumnResizing: true,
         columnResizeMode: "onChange" as ColumnResizeMode,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -84,21 +85,45 @@ export default function CustomerTransactionsTable() {
         },
     })
 
+    // 3) Options for the dropdown filter
+    const transactionTypeOptions = ["All", "Return", "Visit", "Redeem Reward", "Signup"]
+
+    // 4) Handler to set the filter on "transaction_display"
+    const handleDisplayFilterChange = (newVal: string) => {
+        table.getColumn("transaction_display")?.setFilterValue(newVal)
+    }
+
     return (
         <div className="w-full max-w-[1200px]">
-            {/* Filter input */}
-            <div className="flex items-center py-4">
+            {/* Filter Row */}
+            <div className="flex items-center gap-4 py-4">
+                {/* Example: Keep or remove this Input if you want a text-based filter. 
+            But we replaced transaction_type with transaction_display. 
+            You can remove it if you'd rather rely solely on the dropdown. */}
                 <Input
                     placeholder="Filter by transaction type..."
-                    value={(table.getColumn("transaction_type")?.getFilterValue() as string) ?? ""}
+                    value={(table.getColumn("transaction_display")?.getFilterValue() as string) ?? ""}
                     onChange={(event) =>
-                        table.getColumn("transaction_type")?.setFilterValue(event.target.value)
+                        table.getColumn("transaction_display")?.setFilterValue(event.target.value)
                     }
                     className="max-w-sm"
                 />
+
+                {/* 5) The dropdown for discrete filters */}
+                <select
+                    onChange={(e) => handleDisplayFilterChange(e.target.value)}
+                    className="border px-2 py-1 rounded"
+                    defaultValue="All"
+                >
+                    {transactionTypeOptions.map((option) => (
+                        <option key={option} value={option}>
+                            {option}
+                        </option>
+                    ))}
+                </select>
             </div>
 
-            {/* Only the card's interior scrolls horizontally */}
+            {/* Scrollable container */}
             <div className="w-full overflow-x-auto rounded-md border h-[600px]">
                 <Table className="table-fixed w-full">
                     <TableHeader>
@@ -112,7 +137,7 @@ export default function CustomerTransactionsTable() {
                                         <TableHead
                                             key={header.id}
                                             style={{ width: header.getSize() }}
-                                            className="whitespace-nowrap overflow-hidden relative "
+                                            className="whitespace-nowrap overflow-hidden relative"
                                         >
                                             {header.isPlaceholder
                                                 ? null
@@ -121,12 +146,12 @@ export default function CustomerTransactionsTable() {
                                                     header.getContext()
                                                 )}
 
-                                            {/* Resizer handle if canResize */}
+                                            {/* Resizer handle */}
                                             {canResize && (
                                                 <div
                                                     onMouseDown={header.getResizeHandler()}
                                                     onTouchStart={header.getResizeHandler()}
-                                                    className={`absolute right-0 top-0 h-full w-2 cursor-col-resize select-none bg-transparent items-center ${isResizing ? "bg-blue-500 opacity-40" : ""
+                                                    className={`absolute right-0 top-0 h-full w-2 cursor-col-resize select-none bg-transparent ${isResizing ? "bg-blue-500 opacity-40" : ""
                                                         }`}
                                                 />
                                             )}
@@ -145,10 +170,7 @@ export default function CustomerTransactionsTable() {
                             </TableRow>
                         ) : table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                >
+                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
                                             key={cell.id}

@@ -1,5 +1,6 @@
 // app/dashboard/customer-transactions/columns.ts
-import { ColumnDef } from "@tanstack/react-table"
+
+import { ColumnDef, FilterFn } from "@tanstack/react-table"
 import { CustomerTransaction } from "./page"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
@@ -13,7 +14,23 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 
+// 1) A custom filter function for "transaction_display"
+const transactionDisplayFilter: FilterFn<CustomerTransaction> = (
+    row,
+    columnId,
+    filterValue
+) => {
+    // If user selected "All", we pass everything
+    if (filterValue === "All") return true
+
+    // The cell's string value, e.g. "Visit", "Return", "Signup", etc.
+    const displayVal = row.getValue<string>(columnId)
+
+    return displayVal === filterValue
+}
+
 export const columns: ColumnDef<CustomerTransaction>[] = [
+    // SELECT (checkbox) column
     {
         id: "select",
         header: ({ table }) => (
@@ -39,10 +56,12 @@ export const columns: ColumnDef<CustomerTransaction>[] = [
         ),
         enableSorting: false,
         enableHiding: false,
-        size: 50,           // Keep the checkbox column narrow
+        size: 50,
         minSize: 50,
         maxSize: 60,
     },
+
+    // ID column
     {
         accessorKey: "id",
         header: ({ column }) => (
@@ -61,8 +80,11 @@ export const columns: ColumnDef<CustomerTransaction>[] = [
         minSize: 80,
         maxSize: 120,
     },
+
+    // 2) Our "transaction_display" column: if points=0 => "Return"
     {
-        accessorKey: "transaction_type",
+        // No accessorKey; we use accessorFn to produce "Return"/"Visit"/"Redeem Reward"/"Signup"
+        id: "transaction_display",
         header: ({ column }) => (
             <div className="text-center">
                 <Button
@@ -74,10 +96,36 @@ export const columns: ColumnDef<CustomerTransaction>[] = [
                 </Button>
             </div>
         ),
-        cell: ({ row }) => <div className="capitalize text-center">{row.getValue("transaction_type")}</div>,
-        size: 140,
+        // Logic to determine the "display" label
+        accessorFn: (row) => {
+            const { transaction_type, points_changed } = row
+            if (transaction_type === "visit" && points_changed === 0) {
+                return "Return"
+            }
+            if (transaction_type === "visit") {
+                return "Visit"
+            }
+            if (transaction_type === "redeem_reward") {
+                return "Redeem Reward"
+            }
+            if (transaction_type === "signup") {
+                return "Signup"
+            }
+            return "Unknown"
+        },
+        // Render the cell
+        cell: ({ getValue }) => {
+            const displayVal = getValue<string>()
+            return <div className="capitalize text-center">{displayVal}</div>
+        },
+        sortingFn: "alphanumeric",
+        // Use our custom filter for discrete "Return", "Visit", etc.
+        filterFn: transactionDisplayFilter,
+        size: 180,
         minSize: 180,
     },
+
+    // Points Changed
     {
         accessorKey: "points_changed",
         header: ({ column }) => (
@@ -97,6 +145,8 @@ export const columns: ColumnDef<CustomerTransaction>[] = [
         size: 120,
         minSize: 180,
     },
+
+    // Net Points
     {
         accessorKey: "net_points",
         header: ({ column }) => (
@@ -116,6 +166,8 @@ export const columns: ColumnDef<CustomerTransaction>[] = [
         size: 110,
         minSize: 150,
     },
+
+    // Reward ID
     {
         accessorKey: "reward_id",
         header: ({ column }) => (
@@ -135,6 +187,8 @@ export const columns: ColumnDef<CustomerTransaction>[] = [
         size: 110,
         minSize: 150,
     },
+
+    // Created At
     {
         accessorKey: "created_at",
         header: ({ column }) => (
@@ -155,6 +209,8 @@ export const columns: ColumnDef<CustomerTransaction>[] = [
         size: 170,
         minSize: 180,
     },
+
+    // Customer ID
     {
         accessorKey: "customer_id",
         header: ({ column }) => (
@@ -174,12 +230,13 @@ export const columns: ColumnDef<CustomerTransaction>[] = [
         size: 300,
         minSize: 250,
     },
+
+    // Actions column
     {
         id: "actions",
         enableHiding: false,
         cell: ({ row }) => {
             const transaction = row.original
-
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
