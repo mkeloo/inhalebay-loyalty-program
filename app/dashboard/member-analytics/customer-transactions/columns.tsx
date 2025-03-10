@@ -1,5 +1,4 @@
-// app/dashboard/customer-transactions/columns.ts
-import { ColumnDef, FilterFn } from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table"
 import { CustomerTransaction } from "./page"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
@@ -13,27 +12,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 
-// Example of receiving callbacks as props
+//
+// 1) Update the interface so `onViewCustomer` expects a string customerId,
+//    and `onViewTransaction` expects (transactionId: number, customerId: string).
+//
 interface CreateTransactionColumnsProps {
-    onViewCustomer: (customerId: number) => void;
-    onViewTransaction: (transactionId: number) => void;
+    onViewCustomer: (customerId: string) => Promise<void> | void;
+    onViewTransaction: (transactionId: number, customerId: string) => Promise<void> | void;
 }
-
-// 1) A custom filter function for "transaction_display"
-const transactionDisplayFilter: FilterFn<CustomerTransaction> = (
-    row,
-    columnId,
-    filterValue
-) => {
-    // If user selected "All", we pass everything
-    if (filterValue === "All") return true
-
-    // The cell's string value, e.g. "Visit", "Return", "Signup", etc.
-    const displayVal = row.getValue<string>(columnId)
-
-    return displayVal === filterValue
-}
-
 
 /**
  * Create an array of columns. We accept two callbacks:
@@ -72,8 +58,6 @@ export function createTransactionColumns({
             enableSorting: false,
             enableHiding: false,
             size: 50,
-            minSize: 50,
-            maxSize: 60,
         },
         // ID column
         {
@@ -95,8 +79,7 @@ export function createTransactionColumns({
             maxSize: 120,
         },
         {
-            // No accessorKey; we use accessorFn to produce "Return"/"Visit"/"Redeem Reward"/"Signup"
-            id: "transaction_type",
+            accessorKey: "transaction_type",
             header: ({ column }) => (
                 <div className="text-center">
                     <Button
@@ -108,31 +91,14 @@ export function createTransactionColumns({
                     </Button>
                 </div>
             ),
-            // Logic to determine the "display" label
-            accessorFn: (row) => {
-                const { transaction_type, points_changed } = row
-                if (transaction_type === "visit" && points_changed === 0) {
-                    return "Return"
-                }
-                if (transaction_type === "visit") {
-                    return "Visit"
-                }
-                if (transaction_type === "redeem_reward") {
-                    return "Redeem Reward"
-                }
-                if (transaction_type === "signup") {
-                    return "Signup"
-                }
-                return "Unknown"
+            cell: ({ row }) => {
+                const { transaction_type, points_changed } = row.original
+                if (transaction_type === "visit" && points_changed === 0) return <div className="text-center">Return</div>
+                if (transaction_type === "visit") return <div className="text-center">Visit</div>
+                if (transaction_type === "redeem_reward") return <div className="text-center">Redeem Reward</div>
+                if (transaction_type === "signup") return <div className="text-center">Signup</div>
+                return <div className="text-center">Unknown</div>
             },
-            // Render the cell
-            cell: ({ getValue }) => {
-                const displayVal = getValue<string>()
-                return <div className="capitalize text-center">{displayVal}</div>
-            },
-            sortingFn: "alphanumeric",
-            // Use our custom filter for discrete "Return", "Visit", etc.
-            filterFn: transactionDisplayFilter,
             size: 180,
             minSize: 180,
         },
@@ -193,10 +159,8 @@ export function createTransactionColumns({
             cell: ({ row }) => (
                 <div className="text-center">{row.getValue("reward_id") ?? "N/A"}</div>
             ),
-            size: 110,
-            minSize: 150,
+            size: 140,
         },
-        // Created At column
         {
             accessorKey: "created_at",
             header: ({ column }) => (
@@ -215,8 +179,7 @@ export function createTransactionColumns({
                 const dateStr = rawVal ? new Date(rawVal).toLocaleString() : "N/A"
                 return <div className="text-center">{dateStr}</div>
             },
-            size: 170,
-            minSize: 180,
+            size: 160,
         },
 
 
@@ -258,13 +221,17 @@ export function createTransactionColumns({
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
+                                {/* 
+                                    2) Pass 'customer_id' (string) to onViewCustomer 
+                                        and pass both transaction.id + transaction.customer_id to onViewTransaction 
+                                */}
                                 <DropdownMenuItem
                                     onClick={() => onViewCustomer(transaction.customer_id)}
                                 >
                                     View Customer
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                    onClick={() => onViewTransaction(transaction.id)}
+                                    onClick={() => onViewTransaction(transaction.id, transaction.customer_id)}
                                 >
                                     View Transaction Details
                                 </DropdownMenuItem>

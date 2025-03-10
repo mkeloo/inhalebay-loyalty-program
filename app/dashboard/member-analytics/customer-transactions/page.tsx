@@ -1,4 +1,3 @@
-// app/dashboard/customer-transactions/page.tsx
 "use client";
 
 import * as React from "react";
@@ -14,6 +13,7 @@ import {
     useReactTable,
     ColumnResizeMode,
 } from "@tanstack/react-table";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,9 +25,17 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { createTransactionColumns } from "./columns";
-import { fetchCustomerTransactions } from "../../../actions/customerTransactions";
+
+// 1) Import the new function for “other transactions”
+import {
+    fetchCustomerTransactions,
+    fetchCustomerTransactionsByCustomerId,
+} from "../../../actions/customerTransactions";
+
+// 2) Also import the function to fetch a single customer by ID
+import { fetchCustomerById } from "../../../actions/customers"; // <-- Adjust path if needed
+
 import { Card } from "@/components/ui/card";
-import { useState, useEffect, useMemo } from "react";
 import {
     Dialog,
     DialogContent,
@@ -35,46 +43,75 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { useState, useEffect, useMemo } from "react";
 
-// Define the transaction type
+// If your "Customers" type is in "@/lib/types" or similar, import it:
+import { Customers } from "@/lib/types";
+
+/** 
+ * Adjust the shape of `customer_id` to be a string if it's a UUID in the DB. 
+ * Otherwise, you won't fetch matching data. 
+ */
 export type CustomerTransaction = {
     id: number;
     transaction_type: "signup" | "visit" | "redeem_reward";
     points_changed: number;
     net_points: number;
     created_at: string;
-    reward_id: number;
-    customer_id: number;
+    reward_id: number | null;
+    customer_id: string;  // <-- must be string if it's a UUID in your table
 };
 
 export default function CustomerTransactionsTable() {
     const [data, setData] = useState<CustomerTransaction[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+
+    // Table states
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
+
+    // Pagination
     const [page, setPage] = useState<number>(1);
     const pageSize = 20;
 
-    // Local states for dialogs
+    // Dialog states
     const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
     const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
-    const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+
+    // For “View Customer” details
+    const [selectedCustomerId, setSelectedCustomerId] = useState<string>(""); // string, not number
+    const [customerDetails, setCustomerDetails] = useState<Customers | null>(null);
+
+    // For “View Transaction” details
     const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null);
 
-    // Callbacks to open dialogs
-    const onViewCustomer = (customerId: number) => {
+    // For listing other transactions for the same customer
+    const [otherTransactions, setOtherTransactions] = useState<CustomerTransaction[]>([]);
+
+    // 1) Callback to open “View Customer” dialog
+    const onViewCustomer = async (customerId: string) => {
         setSelectedCustomerId(customerId);
+
+        // Attempt to fetch the single customer by ID (must be a string if your DB is UUID)
+        const response = await fetchCustomerById(customerId);
+        if (response.success && response.data) {
+            setCustomerDetails(response.data);
+        } else {
+            setCustomerDetails(null);
+        }
         setIsCustomerDialogOpen(true);
     };
 
-    const onViewTransaction = (transactionId: number) => {
+    // 2) Callback to open “View Transaction” dialog
+    const onViewTransaction = (transactionId: number, custId: string) => {
         setSelectedTransactionId(transactionId);
+        setSelectedCustomerId(custId);
         setIsTransactionDialogOpen(true);
     };
 
-    // Fetch data on mount or page change
+    // Fetch main table data
     useEffect(() => {
         const fetchData = async () => {
             const response = await fetchCustomerTransactions(page, pageSize);
@@ -86,7 +123,26 @@ export default function CustomerTransactionsTable() {
         fetchData();
     }, [page]);
 
-    // Build the columns using our callback-based creator
+    // When we open the Transaction dialog, also fetch other transactions
+    useEffect(() => {
+        const fetchOtherTx = async () => {
+            if (isTransactionDialogOpen && selectedCustomerId && selectedTransactionId !== null) {
+                const res = await fetchCustomerTransactionsByCustomerId(
+                    selectedCustomerId,        // string
+                    selectedTransactionId,     // number
+                    20
+                );
+                if (res.success) {
+                    setOtherTransactions(res.data);
+                } else {
+                    setOtherTransactions([]);
+                }
+            }
+        };
+        fetchOtherTx();
+    }, [isTransactionDialogOpen, selectedCustomerId, selectedTransactionId]);
+
+    // Build the columns
     const transactionColumns = useMemo(
         () =>
             createTransactionColumns({
@@ -121,10 +177,10 @@ export default function CustomerTransactionsTable() {
         },
     });
 
-    // Options for the dropdown filter
+    // Filter options
     const transactionTypeOptions = ["All", "Return", "Visit", "Redeem Reward", "Signup"];
 
-    // Handler to set the filter on "transaction_type"
+    // Filter setter
     const handleDisplayFilterChange = (newVal: string) => {
         table.getColumn("transaction_type")?.setFilterValue(newVal);
     };
@@ -137,9 +193,7 @@ export default function CustomerTransactionsTable() {
                 <div className="w-1/2 flex items-center justify-between">
                     <Input
                         placeholder="Filter by transaction type..."
-                        value={
-                            (table.getColumn("transaction_type")?.getFilterValue() as string) ?? ""
-                        }
+                        value={(table.getColumn("transaction_type")?.getFilterValue() as string) ?? ""}
                         onChange={(event) =>
                             table.getColumn("transaction_type")?.setFilterValue(event.target.value)
                         }
@@ -244,9 +298,47 @@ export default function CustomerTransactionsTable() {
                     <DialogHeader>
                         <DialogTitle>Customer Details</DialogTitle>
                     </DialogHeader>
-                    <div>
-                        <p>Customer ID: {selectedCustomerId}</p>
-                        {/* TODO: Extend this dialog to fetch and display full customer details */}
+                    <div className="space-y-2">
+                        {customerDetails ? (
+                            <>
+                                <p><strong>ID:</strong> {customerDetails.id}</p>
+                                <p><strong>Store ID:</strong> {customerDetails.store_id}</p>
+                                <p><strong>Phone Number:</strong> {customerDetails.phone_number}</p>
+                                <p><strong>Name:</strong> {customerDetails.name}</p>
+                                <p><strong>Avatar:</strong> {customerDetails.avatar_name || "N/A"}</p>
+                                <p><strong>Current Points:</strong> {customerDetails.current_points}</p>
+                                <p><strong>Lifetime Points:</strong> {customerDetails.lifetime_points}</p>
+                                <p><strong>Total Visits:</strong> {customerDetails.total_visits}</p>
+                                <p>
+                                    <strong>Last Visit:</strong>{" "}
+                                    {customerDetails.last_visit
+                                        ? new Date(customerDetails.last_visit).toLocaleString()
+                                        : "N/A"}
+                                </p>
+                                <p>
+                                    <strong>Joined Date:</strong>{" "}
+                                    {customerDetails.joined_date
+                                        ? new Date(customerDetails.joined_date).toLocaleDateString()
+                                        : "N/A"}
+                                </p>
+                                <p><strong>Membership Level:</strong> {customerDetails.membership_level}</p>
+                                <p><strong>Active:</strong> {customerDetails.is_active ? "Yes" : "No"}</p>
+                                <p>
+                                    <strong>Created At:</strong>{" "}
+                                    {customerDetails.created_at
+                                        ? new Date(customerDetails.created_at).toLocaleString()
+                                        : "N/A"}
+                                </p>
+                                <p>
+                                    <strong>Updated At:</strong>{" "}
+                                    {customerDetails.updated_at
+                                        ? new Date(customerDetails.updated_at).toLocaleString()
+                                        : "N/A"}
+                                </p>
+                            </>
+                        ) : (
+                            <p>Loading customer details...</p>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsCustomerDialogOpen(false)}>
@@ -257,14 +349,50 @@ export default function CustomerTransactionsTable() {
             </Dialog>
 
             {/* Transaction Details Dialog */}
+            {/* Transaction Details Dialog */}
             <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
-                <DialogContent>
+                <DialogContent className="h-[65vh] overflow-y-scroll">
                     <DialogHeader>
                         <DialogTitle>Transaction Details</DialogTitle>
                     </DialogHeader>
-                    <div>
-                        <p>Transaction ID: {selectedTransactionId}</p>
-                        {/* TODO: Extend this dialog to fetch and display full transaction details */}
+                    <div className="space-y-4">
+                        {/* Display selected transaction details */}
+                        {selectedTransactionId !== null && (() => {
+                            const mainTransaction = data.find(tx => tx.id === selectedTransactionId);
+                            return mainTransaction ? (
+                                <div className="space-y-2">
+                                    <p><strong>Transaction ID:</strong> {mainTransaction.id}</p>
+                                    <p><strong>Type:</strong> {mainTransaction.transaction_type}</p>
+                                    <p><strong>Points Changed:</strong> {mainTransaction.points_changed}</p>
+                                    <p><strong>Net Points:</strong> {mainTransaction.net_points}</p>
+                                    <p><strong>Created At:</strong> {new Date(mainTransaction.created_at).toLocaleString()}</p>
+                                    <p><strong>Reward ID:</strong> {mainTransaction.reward_id ?? "N/A"}</p>
+                                </div>
+                            ) : (
+                                <p>No transaction details available.</p>
+                            );
+                        })()}
+
+                        {/* Separator */}
+                        <hr className="border-t border-gray-300" />
+
+                        {/* Section to display other transactions for this customer */}
+                        <div>
+                            <h2 className="text-lg font-semibold">Other Transactions for this Customer</h2>
+                            {otherTransactions.length > 0 ? (
+                                otherTransactions.map(tx => (
+                                    <div key={tx.id} className="mt-2 border-b border-gray-200 pb-2">
+                                        <p><strong>ID:</strong> {tx.id}</p>
+                                        <p><strong>Type:</strong> {tx.transaction_type}</p>
+                                        <p><strong>Points Changed:</strong> {tx.points_changed}</p>
+                                        <p><strong>Net Points:</strong> {tx.net_points}</p>
+                                        <p><strong>Created At:</strong> {new Date(tx.created_at).toLocaleString()}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No other transactions for this customer.</p>
+                            )}
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsTransactionDialogOpen(false)}>

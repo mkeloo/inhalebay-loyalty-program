@@ -94,3 +94,22 @@ export async function deleteCustomer(customerId: string) {
     }
     return { success: true };
 }
+
+
+// ───────────────────────────────────────────────────────────
+// Fetch Customer by ID
+// ───────────────────────────────────────────────────────────
+export async function fetchCustomerById(customerId: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("customers")
+        .select("*")
+        .eq("id", customerId)
+        .maybeSingle();
+
+    if (error) {
+        console.error("Error fetching customer by ID:", error);
+        return { success: false, data: null, message: "Failed to fetch customer by ID." };
+    }
+    return { success: true, data };
+}
