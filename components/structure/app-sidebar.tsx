@@ -76,16 +76,28 @@ const data = {
       isActive: true,
       items: [
         {
-          title: "Activity",
-          url: "/dashboard/activity",
-        },
-        {
           title: "Customers",
           url: "/dashboard/member-analytics/customers",
         },
         {
           title: "Customer Transactions",
           url: "/dashboard/member-analytics/customer-transactions",
+        },
+      ],
+    },
+    {
+      title: "Rewards & Tiers",
+      url: "#",
+      icon: Settings2,
+      isActive: true,
+      items: [
+        {
+          title: "Rewards Management",
+          url: "/dashboard/rewards",
+        },
+        {
+          title: "Member Tiers",
+          url: "/dashboard/member-tiers",
         },
       ],
     },
@@ -106,22 +118,6 @@ const data = {
         {
           title: "Handler Device",
           url: "/dashboard/device-management/handler-device",
-        },
-      ],
-    },
-    {
-      title: "Rewards & Tiers",
-      url: "#",
-      icon: Settings2,
-      isActive: true,
-      items: [
-        {
-          title: "Rewards Management",
-          url: "/dashboard/rewards",
-        },
-        {
-          title: "Member Tiers",
-          url: "/dashboard/member-tiers",
         },
       ],
     },
