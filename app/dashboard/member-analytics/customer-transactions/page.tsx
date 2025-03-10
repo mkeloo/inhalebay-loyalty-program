@@ -1,7 +1,7 @@
 // app/dashboard/customer-transactions/page.tsx
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
     ColumnFiltersState,
     SortingState,
@@ -13,9 +13,9 @@ import {
     getSortedRowModel,
     useReactTable,
     ColumnResizeMode,
-} from "@tanstack/react-table"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+} from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
     Table,
     TableBody,
@@ -23,48 +23,83 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
-import { columns } from "./columns"
-import { fetchCustomerTransactions } from "../../../actions/customerTransactions"
-import { Card } from "@/components/ui/card"
+} from "@/components/ui/table";
+import { createTransactionColumns } from "./columns";
+import { fetchCustomerTransactions } from "../../../actions/customerTransactions";
+import { Card } from "@/components/ui/card";
+import { useState, useEffect, useMemo } from "react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
 
-// Same type definition, but note we rely on "transaction_display" column for display logic
+// Define the transaction type
 export type CustomerTransaction = {
-    id: number
-    transaction_type: "signup" | "visit" | "redeem_reward"
-    points_changed: number
-    net_points: number
-    created_at: string
-    reward_id: number
-    customer_id: number
-}
+    id: number;
+    transaction_type: "signup" | "visit" | "redeem_reward";
+    points_changed: number;
+    net_points: number;
+    created_at: string;
+    reward_id: number;
+    customer_id: number;
+};
 
 export default function CustomerTransactionsTable() {
-    const [data, setData] = React.useState<CustomerTransaction[]>([])
-    const [loading, setLoading] = React.useState<boolean>(true)
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = React.useState({})
-    const [page, setPage] = React.useState<number>(1)
-    const pageSize = 20
+    const [data, setData] = useState<CustomerTransaction[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const [rowSelection, setRowSelection] = useState({});
+    const [page, setPage] = useState<number>(1);
+    const pageSize = 20;
 
-    // 1) On mount or page change, fetch data
-    React.useEffect(() => {
+    // Local states for dialogs
+    const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
+    const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
+    const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+    const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null);
+
+    // Callbacks to open dialogs
+    const onViewCustomer = (customerId: number) => {
+        setSelectedCustomerId(customerId);
+        setIsCustomerDialogOpen(true);
+    };
+
+    const onViewTransaction = (transactionId: number) => {
+        setSelectedTransactionId(transactionId);
+        setIsTransactionDialogOpen(true);
+    };
+
+    // Fetch data on mount or page change
+    useEffect(() => {
         const fetchData = async () => {
-            const response = await fetchCustomerTransactions(page, pageSize)
+            const response = await fetchCustomerTransactions(page, pageSize);
             if (response.success) {
-                setData(response.data)
+                setData(response.data);
             }
-            setLoading(false)
-        }
-        fetchData()
-    }, [page])
+            setLoading(false);
+        };
+        fetchData();
+    }, [page]);
 
-    // 2) Build the table
+    // Build the columns using our callback-based creator
+    const transactionColumns = useMemo(
+        () =>
+            createTransactionColumns({
+                onViewCustomer,
+                onViewTransaction,
+            }),
+        [onViewCustomer, onViewTransaction]
+    );
+
+    // Build the table instance
     const table = useReactTable({
         data,
-        columns,
+        columns: transactionColumns,
         enableColumnResizing: true,
         columnResizeMode: "onChange" as ColumnResizeMode,
         onSortingChange: setSorting,
@@ -84,38 +119,32 @@ export default function CustomerTransactionsTable() {
         initialState: {
             pagination: { pageSize },
         },
-    })
+    });
 
-    // 3) Options for the dropdown filter
-    const transactionTypeOptions = ["All", "Return", "Visit", "Redeem Reward", "Signup"]
+    // Options for the dropdown filter
+    const transactionTypeOptions = ["All", "Return", "Visit", "Redeem Reward", "Signup"];
 
-    // 4) Handler to set the filter on "transaction_display"
+    // Handler to set the filter on "transaction_type"
     const handleDisplayFilterChange = (newVal: string) => {
-        table.getColumn("transaction_display")?.setFilterValue(newVal)
-    }
+        table.getColumn("transaction_type")?.setFilterValue(newVal);
+    };
 
     return (
         <div className="w-full max-w-[1200px]">
-            {/* Filter Row */}
-
-            {/* Title & Filter input */}
+            {/* Title & Filter Row */}
             <Card className="flex items-center justify-between gap-4 px-6 py-4 mb-4">
                 <h1 className="w-1/2 text-2xl font-semibold">Customer Transactions</h1>
-
                 <div className="w-1/2 flex items-center justify-between">
-                    {/* Example: Keep or remove this Input if you want a text-based filter. 
-                    But we replaced transaction_type with transaction_display. 
-                    You can remove it if you'd rather rely solely on the dropdown. */}
                     <Input
                         placeholder="Filter by transaction type..."
-                        value={(table.getColumn("transaction_display")?.getFilterValue() as string) ?? ""}
+                        value={
+                            (table.getColumn("transaction_type")?.getFilterValue() as string) ?? ""
+                        }
                         onChange={(event) =>
-                            table.getColumn("transaction_display")?.setFilterValue(event.target.value)
+                            table.getColumn("transaction_type")?.setFilterValue(event.target.value)
                         }
                         className="max-w-sm"
                     />
-
-                    {/* 5) The dropdown for discrete filters */}
                     <select
                         onChange={(e) => handleDisplayFilterChange(e.target.value)}
                         className="border px-2 py-1 rounded"
@@ -130,17 +159,15 @@ export default function CustomerTransactionsTable() {
                 </div>
             </Card>
 
-
-            {/* Scrollable container */}
+            {/* Scrollable container for the table */}
             <div className="w-full overflow-x-auto rounded-md border h-[600px]">
                 <Table className="table-fixed w-full">
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
-                                    const canResize = header.column.getCanResize()
-                                    const isResizing = header.column.getIsResizing()
-
+                                    const canResize = header.column.getCanResize();
+                                    const isResizing = header.column.getIsResizing();
                                     return (
                                         <TableHead
                                             key={header.id}
@@ -149,12 +176,7 @@ export default function CustomerTransactionsTable() {
                                         >
                                             {header.isPlaceholder
                                                 ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-
-                                            {/* Resizer handle */}
+                                                : flexRender(header.column.columnDef.header, header.getContext())}
                                             {canResize && (
                                                 <div
                                                     onMouseDown={header.getResizeHandler()}
@@ -164,7 +186,7 @@ export default function CustomerTransactionsTable() {
                                                 />
                                             )}
                                         </TableHead>
-                                    )
+                                    );
                                 })}
                             </TableRow>
                         ))}
@@ -172,7 +194,7 @@ export default function CustomerTransactionsTable() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
+                                <TableCell colSpan={transactionColumns.length} className="h-24 text-center">
                                     Loading...
                                 </TableCell>
                             </TableRow>
@@ -192,7 +214,7 @@ export default function CustomerTransactionsTable() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
+                                <TableCell colSpan={transactionColumns.length} className="h-24 text-center">
                                     No results.
                                 </TableCell>
                             </TableRow>
@@ -215,6 +237,42 @@ export default function CustomerTransactionsTable() {
                     Next
                 </Button>
             </div>
+
+            {/* Customer Details Dialog */}
+            <Dialog open={isCustomerDialogOpen} onOpenChange={setIsCustomerDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Customer Details</DialogTitle>
+                    </DialogHeader>
+                    <div>
+                        <p>Customer ID: {selectedCustomerId}</p>
+                        {/* TODO: Extend this dialog to fetch and display full customer details */}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsCustomerDialogOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Transaction Details Dialog */}
+            <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Transaction Details</DialogTitle>
+                    </DialogHeader>
+                    <div>
+                        <p>Transaction ID: {selectedTransactionId}</p>
+                        {/* TODO: Extend this dialog to fetch and display full transaction details */}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsTransactionDialogOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
-    )
+    );
 }
