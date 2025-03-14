@@ -122,6 +122,22 @@ const data = {
       ],
     },
     {
+      title: "Inhale Bay Website",
+      url: "#",
+      icon: BookOpen,
+      isActive: true,
+      items: [
+        {
+          title: "GA4 Analytics",
+          url: "/dashboard/inhale-bay-website/ga4-analytics",
+        },
+        {
+          title: "Completed",
+          url: "#",
+        },
+      ],
+    },
+    {
       title: "Campaigns",
       url: "#",
       icon: BookOpen,
