@@ -31,5 +31,5 @@ export const hempCOA = [
     { id: 26, file_name: "Trop_Cherry_THCA_Snowcaps_COA_09:24.pdf", file_type: "application/pdf", file_size_kb: 310.67, file_url: "Trop_Cherry_THCA_Snowcaps_COA_09%3A24.pdf" },
     { id: 27, file_name: "White_Kush_THCA_Flower_COA_10:24.pdf", file_type: "application/pdf", file_size_kb: 296.38, file_url: "White_Kush_THCA_Flower_COA_10%3A24.pdf" },
     { id: 28, file_name: "White_Truffle_THCA_Flower_COA_09:24.pdf", file_type: "application/pdf", file_size_kb: 308.43, file_url: "White_Truffle_THCA_Flower_COA_09%3A24.pdf" },
-    { id: 29, file_name: "White_Widow_THCA_Snowcaps_COA_09:24.pdf", file_type: "application/pdf", file_size_kb: 309.04, file_url: "White_Widow_THCA_Snowcaps_COA_09%3A24.pdf" }
+    { id: 29, file_name: "White_Widow_THCA_Snowcaps-COA_09:24.pdf", file_type: "application/pdf", file_size_kb: 309.04, file_url: "White_Widow_THCA_Snowcaps-COA_09%3A24.pdf" }
 ];
