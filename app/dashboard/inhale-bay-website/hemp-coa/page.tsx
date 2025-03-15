@@ -177,13 +177,11 @@ export default function HempCertificateOfAnalysis() {
 
                                     // fgColor="#7EC8E3"
                                     // bgColor="#00008B"
-                                    /* 
-                                      Add the logo in the center:
-                                      - You might need `inhalebaylogo.src` if you're using an imported asset in Next.js
-                                    */
                                     logoImage={inhalebaylogo.src}
-                                    logoWidth={70}
+                                    logoWidth={55}
                                     logoOpacity={1}
+                                    logoPaddingStyle='circle'
+                                    logoPadding={5}
                                     removeQrCodeBehindLogo={true}
 
                                     /*
