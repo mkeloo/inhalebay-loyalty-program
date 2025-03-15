@@ -132,8 +132,8 @@ const data = {
           url: "/dashboard/inhale-bay-website/ga4-analytics",
         },
         {
-          title: "Completed",
-          url: "#",
+          title: "Hemp Certificates of Analysis",
+          url: "/dashboard/inhale-bay-website/hemp-coa",
         },
       ],
     },
