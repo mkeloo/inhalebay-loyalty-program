@@ -199,6 +199,7 @@ export default function HempCertificateOfAnalysis() {
                                         // Bottom-left eye
                                         { outer: 12, inner: 4 },
                                     ]}
+                                // eyeColor={"#00008B"}
 
                                 />
                                 <p className="text-sm text-center break-all">{qrCodeData}</p>
